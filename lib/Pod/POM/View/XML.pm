@@ -150,8 +150,6 @@ sub new {
 sub tag {
     my( $self, $pod ) = @_;
 
-    my $o = ref $self;
-
     return join '_', grep { $_ }
         ( ref $self ? $self->{tag_prefix} : $TAG_PREFIX ),
         ( ref $self ? $self->{tags}{$pod} : $TAGS{$pod} );
