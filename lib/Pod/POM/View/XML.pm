@@ -1,84 +1,9 @@
 package Pod::POM::View::XML;
+BEGIN {
+  $Pod::POM::View::XML::AUTHORITY = 'cpan:YANICK';
+}
 # ABSTRACT: XML view of a Pod Object Model
-
-=head1 SYNOPSIS
-
-    use Pod::POM;
-    use Pod::POM::View::XML;
-
-    my $parser = Pod::POM->new;
-    my $pom = $parser->parse_text( $some_pod );
-
-    my $xml = Pod::POM::View::XML->print($pom);
-
-=head1 DESCRIPTION
-
-C<Pod::POM::View::XML> is a view that aims at
-producing a direct XML rendition of the POD.
-
-=head2 new(%options)
-
-The constructor C<new()> accepts the following options.
-
-=over
-
-=item prefix
-
-Prefix added to all tags. Defaults to C<pod> (so the 
-xml tags will be C<pod_pod>, C<pod_section>, C<pod_para>, etc).
-For no prefix, set to C<undef>. 
-
-The global default value can be set via C<$Pod::POM::View::XML::TAG_PREFIX>.
-
-=item tags
-
-Mapping of the POD keywords to the xml tags. Tags that aren't
-defined here will use the default mapping as given below.
-
-The global defaults can also be set via C<%Pod::POM::View::XML::TAGS>.
-
-The defaults (without prefix) are:
-
-        POD              XML
-        ----------       ---------
-        pod              pod
-
-        head*n*          section
-        head*n*_title    title
-        
-        over             over
-        item             item
-        item_title       title
-        
-        for              div
-        begin            div
-        
-        textblock        para
-        verbatim         preformated
-
-        b                bold
-        i                italic
-        c                code
-        f                file
-        l                link
-
-        index            index
-
-
-=back
-
-
-=head1 SEE ALSO
-
-=over
-
-=item L<Pod::POM>
-
-=item L<Pod::POM::View::DocBook>
-
-=back
-
-=cut
+$Pod::POM::View::XML::VERSION = '0.0.1';
 
 
 use strict;
@@ -468,3 +393,104 @@ sub encode {
 
 1;
 
+__END__
+
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+Pod::POM::View::XML - XML view of a Pod Object Model
+
+=head1 VERSION
+
+version 0.0.1
+
+=head1 SYNOPSIS
+
+    use Pod::POM;
+    use Pod::POM::View::XML;
+
+    my $parser = Pod::POM->new;
+    my $pom = $parser->parse_text( $some_pod );
+
+    my $xml = Pod::POM::View::XML->print($pom);
+
+=head1 DESCRIPTION
+
+C<Pod::POM::View::XML> is a view that aims at
+producing a direct XML rendition of the POD.
+
+=head2 new(%options)
+
+The constructor C<new()> accepts the following options.
+
+=over
+
+=item prefix
+
+Prefix added to all tags. Defaults to C<pod> (so the 
+xml tags will be C<pod_pod>, C<pod_section>, C<pod_para>, etc).
+For no prefix, set to C<undef>. 
+
+The global default value can be set via C<$Pod::POM::View::XML::TAG_PREFIX>.
+
+=item tags
+
+Mapping of the POD keywords to the xml tags. Tags that aren't
+defined here will use the default mapping as given below.
+
+The global defaults can also be set via C<%Pod::POM::View::XML::TAGS>.
+
+The defaults (without prefix) are:
+
+        POD              XML
+        ----------       ---------
+        pod              pod
+
+        head*n*          section
+        head*n*_title    title
+        
+        over             over
+        item             item
+        item_title       title
+        
+        for              div
+        begin            div
+        
+        textblock        para
+        verbatim         preformated
+
+        b                bold
+        i                italic
+        c                code
+        f                file
+        l                link
+
+        index            index
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+=item L<Pod::POM>
+
+=item L<Pod::POM::View::DocBook>
+
+=back
+
+=head1 AUTHOR
+
+Yanick Champoux <yanick@babyl.dyndns.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2014 by Yanick Champoux.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
