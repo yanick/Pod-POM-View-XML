@@ -89,7 +89,7 @@ use parent qw( Pod::POM::View );
 use vars qw( $VERSION $DEBUG $ERROR $AUTOLOAD );
 
 use PerlX::Maybe;
-use XML::Writer;
+use XML::Writer 0.620;
 use Escape::Houdini qw/ escape_xml /;
 
 
