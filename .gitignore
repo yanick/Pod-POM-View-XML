@@ -1,2 +1,4 @@
 /Pod-POM-View-XML*
+*.orig
 .build
+.envrc
