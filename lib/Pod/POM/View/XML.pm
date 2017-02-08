@@ -1,21 +1,19 @@
 package Pod::POM::View::XML;
 # ABSTRACT: XML view of a Pod Object Model
 
-
-
 use strict;
+
+use 5.10.0;
 
 use Pod::POM::View;
 use parent qw( Pod::POM::View );
-
-use vars qw( $VERSION $DEBUG $ERROR $AUTOLOAD );
 
 use PerlX::Maybe;
 use XML::Writer 0.620;
 use Escape::Houdini qw/ escape_xml /;
 
+our $DEBUG  = 0;
 
-$DEBUG   = 0 unless defined $DEBUG;
 my $HTML_PROTECT = 0;
 my @OVER;
 
@@ -54,7 +52,7 @@ our %TAGS = qw/
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_)
-	|| return;
+        || return;
 
     # initalise stack for maintaining info for nested lists
     my %args = @_;
@@ -84,27 +82,23 @@ sub xml {
 sub view {
     my ($self, $type, $item) = @_;
 
-    if ($type =~ s/^seq_//) {
-	return $item;
+    return $item if $type =~ s/^seq_//; 
+
+    if (UNIVERSAL::isa($item, 'HASH')) {
+        return $item->{ content }->present($self)
+            if defined $item->{ content };
+            
+        if (defined $item->{ text }) {
+            my $text = $item->{ text };
+            return ref $text ? $text->present($self) : $text;
+        }
+
+        return '';
     }
-    elsif (UNIVERSAL::isa($item, 'HASH')) {
-	if (defined $item->{ content }) {
-	    return $item->{ content }->present($self);
-	}
-	elsif (defined $item->{ text }) {
-	    my $text = $item->{ text };
-	    return ref $text ? $text->present($self) : $text;
-	}
-	else {
-	    return '';
-	}
-    }
-    elsif (! ref $item) {
-	return $item;
-    }
-    else {
-	return '';
-    }
+
+    return $item unless ref $item;
+
+    return '';
 }
 
 sub view_pod {
@@ -148,9 +142,9 @@ sub view_over {
     if( my $items = $over->item() ) {
         return $self->view_over_items( $over, $items );
     }
-    else {
-        return $self->view_over_no_items( $over );
-    }
+
+    return $self->view_over_no_items( $over );
+
 
 }
 
@@ -161,14 +155,14 @@ sub view_over_items {
     my $first_title = $items->[0]->title();
 
     if ($first_title =~ /^\s*\*\s*/) {
-	    # '=item *' => <ul>
-	    $strip = qr/^\s*\*\s*/;
-	}
-	elsif ($first_title =~ /^\s*\d+\.?\s*/) {
-	    # '=item 1.' or '=item 1 ' => <ol>
-	    $strip = qr/^\s*\d+\.?\s*/;
+        # '=item *' => <ul>
+        $strip = qr/^\s*\*\s*/;
+    }
+    elsif ($first_title =~ /^\s*\d+\.?\s*/) {
+        # '=item 1.' or '=item 1 ' => <ol>
+        $strip = qr/^\s*\d+\.?\s*/;
         $type = 'numerical';
-	}
+    }
 
     my $overstack = ref $self ? $self->{ OVER } : \@OVER;
     push @$overstack, $strip;
@@ -375,11 +369,7 @@ sub view_seq_link {
 sub view_seq_text {
      my ($self, $text) = @_;
 
-     if( $HTML_PROTECT ) {
-         return $text;
-     }
-
-     return escape_xml( $text );
+     return $HTML_PROTECT ? $text : escape_xml( $text );
 }
 
 sub encode {
