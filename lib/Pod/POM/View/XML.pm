@@ -252,9 +252,7 @@ sub view_begin {
 sub view_textblock {
     my ($self, $text) = @_;
 
-    if( $HTML_PROTECT ) {
-        return  $text . "\n";
-    }
+    return  $text . "\n" if $HTML_PROTECT;
 
     my $xml = xml();
 
