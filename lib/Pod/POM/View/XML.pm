@@ -1,99 +1,19 @@
 package Pod::POM::View::XML;
 # ABSTRACT: XML view of a Pod Object Model
 
-=head1 SYNOPSIS
-
-    use Pod::POM;
-    use Pod::POM::View::XML;
-
-    my $parser = Pod::POM->new;
-    my $pom = $parser->parse_text( $some_pod );
-
-    my $xml = Pod::POM::View::XML->print($pom);
-
-=head1 DESCRIPTION
-
-C<Pod::POM::View::XML> is a view that aims at
-producing a direct XML rendition of the POD.
-
-=head2 new(%options)
-
-The constructor C<new()> accepts the following options.
-
-=over
-
-=item prefix
-
-Prefix added to all tags. Defaults to C<pod> (so the 
-xml tags will be C<pod_pod>, C<pod_section>, C<pod_para>, etc).
-For no prefix, set to C<undef>. 
-
-The global default value can be set via C<$Pod::POM::View::XML::TAG_PREFIX>.
-
-=item tags
-
-Mapping of the POD keywords to the xml tags. Tags that aren't
-defined here will use the default mapping as given below.
-
-The global defaults can also be set via C<%Pod::POM::View::XML::TAGS>.
-
-The defaults (without prefix) are:
-
-        POD              XML
-        ----------       ---------
-        pod              pod
-
-        head*n*          section
-        head*n*_title    title
-        
-        over             over
-        item             item
-        item_title       title
-        
-        for              div
-        begin            div
-        
-        textblock        para
-        verbatim         preformated
-
-        b                bold
-        i                italic
-        c                code
-        f                file
-        l                link
-
-        index            index
-
-
-=back
-
-
-=head1 SEE ALSO
-
-=over
-
-=item L<Pod::POM>
-
-=item L<Pod::POM::View::DocBook>
-
-=back
-
-=cut
-
-
 use strict;
+
+use 5.10.0;
 
 use Pod::POM::View;
 use parent qw( Pod::POM::View );
-
-use vars qw( $VERSION $DEBUG $ERROR $AUTOLOAD );
 
 use PerlX::Maybe;
 use XML::Writer 0.620;
 use Escape::Houdini qw/ escape_xml /;
 
+our $DEBUG  = 0;
 
-$DEBUG   = 0 unless defined $DEBUG;
 my $HTML_PROTECT = 0;
 my @OVER;
 
@@ -132,7 +52,7 @@ our %TAGS = qw/
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_)
-	|| return;
+        || return;
 
     # initalise stack for maintaining info for nested lists
     my %args = @_;
@@ -162,27 +82,23 @@ sub xml {
 sub view {
     my ($self, $type, $item) = @_;
 
-    if ($type =~ s/^seq_//) {
-	return $item;
+    return $item if $type =~ s/^seq_//; 
+
+    if (UNIVERSAL::isa($item, 'HASH')) {
+        return $item->{ content }->present($self)
+            if defined $item->{ content };
+            
+        if (defined $item->{ text }) {
+            my $text = $item->{ text };
+            return ref $text ? $text->present($self) : $text;
+        }
+
+        return '';
     }
-    elsif (UNIVERSAL::isa($item, 'HASH')) {
-	if (defined $item->{ content }) {
-	    return $item->{ content }->present($self);
-	}
-	elsif (defined $item->{ text }) {
-	    my $text = $item->{ text };
-	    return ref $text ? $text->present($self) : $text;
-	}
-	else {
-	    return '';
-	}
-    }
-    elsif (! ref $item) {
-	return $item;
-    }
-    else {
-	return '';
-    }
+
+    return $item unless ref $item;
+
+    return '';
 }
 
 sub view_pod {
@@ -226,9 +142,9 @@ sub view_over {
     if( my $items = $over->item() ) {
         return $self->view_over_items( $over, $items );
     }
-    else {
-        return $self->view_over_no_items( $over );
-    }
+
+    return $self->view_over_no_items( $over );
+
 
 }
 
@@ -239,14 +155,14 @@ sub view_over_items {
     my $first_title = $items->[0]->title();
 
     if ($first_title =~ /^\s*\*\s*/) {
-	    # '=item *' => <ul>
-	    $strip = qr/^\s*\*\s*/;
-	}
-	elsif ($first_title =~ /^\s*\d+\.?\s*/) {
-	    # '=item 1.' or '=item 1 ' => <ol>
-	    $strip = qr/^\s*\d+\.?\s*/;
+        # '=item *' => <ul>
+        $strip = qr/^\s*\*\s*/;
+    }
+    elsif ($first_title =~ /^\s*\d+\.?\s*/) {
+        # '=item 1.' or '=item 1 ' => <ol>
+        $strip = qr/^\s*\d+\.?\s*/;
         $type = 'numerical';
-	}
+    }
 
     my $overstack = ref $self ? $self->{ OVER } : \@OVER;
     push @$overstack, $strip;
@@ -336,9 +252,7 @@ sub view_begin {
 sub view_textblock {
     my ($self, $text) = @_;
 
-    if( $HTML_PROTECT ) {
-        return  $text . "\n";
-    }
+    return  $text . "\n" if $HTML_PROTECT;
 
     my $xml = xml();
 
@@ -453,11 +367,7 @@ sub view_seq_link {
 sub view_seq_text {
      my ($self, $text) = @_;
 
-     if( $HTML_PROTECT ) {
-         return $text;
-     }
-
-     return escape_xml( $text );
+     return $HTML_PROTECT ? $text : escape_xml( $text );
 }
 
 sub encode {

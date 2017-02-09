@@ -1,6 +1,8 @@
 Revision history for Pod-POM-View-XML
 
 {{$NEXT}}
+  - various code cleanups.
+
  [API CHANGES]
 
  [BUG FIXES]
